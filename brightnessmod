@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+
+"""View and control the display (backlight) brightness.
+
+This script uses the sysfs interface to the ACPI kernel module for video to
+control the backlight power level. Currently it is only known to work with
+single-monitor setups. WARNING: The current user must have write permissions
+on the backlight class sysfs directory (as set by udev rules). For more info,
+see: https://wiki.archlinux.org/index.php/Backlight#ACPI.
+"""
+
+__all__ = ['BrightnessMod']
+
+import argparse
+import pathlib
+import re
+
+
+class BrightnessMod:
+    """Abstract interface to brightness-related data and actions."""
+    _BACKLIGHT_CLASS = pathlib.Path('/sys/class/backlight')
+    MIN_ALLOWED_BRIGHTNESS_PERC = 10  # safety net
+
+    def __init__(self, force=False):
+        interfaces = list(self._BACKLIGHT_CLASS.iterdir())
+        if interfaces and interfaces[0].is_dir():
+            self._interface = interfaces[0]
+        
+        # These are ASCII-encoded sysfs files.
+        self._max_brightness_f = self._interface / 'max_brightness'
+        self._actual_brightness_f = self._interface / 'actual_brightness'
+        self._brightness_f = self._interface / 'brightness'
+        
+        with self._max_brightness_f.open(encoding='ascii') as f:
+            self.max_brightness_raw = int(f.read().strip())
+        
+        self._force = force
+        
+    @property
+    def brightness_raw(self) -> int:
+        """The raw brightness value provided by the system."""
+        with self._actual_brightness_f.open(encoding='ascii') as f:
+            brightness_raw = int(f.read().strip())
+        return brightness_raw
+    
+    @brightness_raw.setter
+    def brightness_raw(self, value_raw: int):
+        if value_raw > self.max_brightness_raw:
+            value_raw = self.max_brightness_raw
+        elif value_raw < self.MIN_ALLOWED_BRIGHTNESS_PERC:
+            if not self._force:
+                value_raw = self.MIN_ALLOWED_BRIGHTNESS_PERC
+            elif value_raw < 0:
+                value_raw = 0
+        with self._brightness_f.open('w', encoding='ascii') as f:
+            f.write(str(value_raw))
+    
+    @property
+    def brightness_perc(self) -> int:
+        """The brightness value converted to a percentage of the maximum."""
+        return round((self.brightness_raw / self.max_brightness_raw) * 100)
+    
+    @brightness_perc.setter
+    def brightness_perc(self, value_perc: int):
+        value_raw = (value_perc / 100) * self.max_brightness_raw
+        self.brightness_raw = round(value_raw)
+
+
+def argparser() -> argparse.ArgumentParser:
+    """Command line argument parser."""
+    description = 'Control or view display (backlight) brightness.'
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument(
+        'modifier',
+        help=f'brightness value modifier: =N / +N / -N',
+        metavar='MODIFIER',
+        nargs='?',
+    )
+    parser.add_argument(
+        '-f', '--force',
+        help='ignore safety constraints',
+        action='store_true',
+    )
+    return parser
+
+
+def main():
+    """Entry point if run as a script."""
+    parser = argparser()
+    args = parser.parse_args()
+
+    if args.modifier is None:
+        print(BrightnessMod().brightness_perc)
+    else:
+        # Brightness value modifier regex.
+        modifier_re = r'^([=+-])(\d{1,2}|100)$'
+        m = re.match(modifier_re, args.modifier)
+        if m is not None:
+            modifier_modifier = m.group(1)
+            modifier_value = int(m.group(2))
+        else:
+            parser.error('invalid brightness value modifier')
+        
+        bm = BrightnessMod(force=args.force)
+        
+        if modifier_modifier == '=':
+            bm.brightness_perc = modifier_value
+        elif modifier_modifier == '+':
+            bm.brightness_perc += modifier_value
+        else:  # modifier_modifier == '-'
+            bm.brightness_perc -= modifier_value
+
+
+if __name__ == '__main__':
+    main()
