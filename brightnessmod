@@ -19,7 +19,7 @@ import re
 class BrightnessMod:
     """Abstract interface to brightness-related data and actions."""
     _BACKLIGHT_CLASS = pathlib.Path('/sys/class/backlight')
-    MIN_ALLOWED_BRIGHTNESS_PERC = 10  # safety net
+    MIN_ALLOWED_BRIGHTNESS_RAW = 10  # safety net
 
     def __init__(self, force=False):
         interfaces = list(self._BACKLIGHT_CLASS.iterdir())
@@ -47,9 +47,9 @@ class BrightnessMod:
     def brightness_raw(self, value_raw: int):
         if value_raw > self.max_brightness_raw:
             value_raw = self.max_brightness_raw
-        elif value_raw < self.MIN_ALLOWED_BRIGHTNESS_PERC:
+        elif value_raw < self.MIN_ALLOWED_BRIGHTNESS_RAW:
             if not self._force:
-                value_raw = self.MIN_ALLOWED_BRIGHTNESS_PERC
+                value_raw = self.MIN_ALLOWED_BRIGHTNESS_RAW
             elif value_raw < 0:
                 value_raw = 0
         with self._brightness_f.open('w', encoding='ascii') as f:
