@@ -104,7 +104,12 @@ def main():
     args = parser.parse_args()
 
     if args.modifier is None:
-        print(BrightnessMod().brightness_perc)
+        try:
+            bm = BrightnessMod()
+        except FileNotFoundError:
+            parser.error('error accessing backlight interface')
+        else:
+            print(bm.brightness_perc)
     else:
         # Brightness value modifier regex.
         modifier_re = r'^([=+-])(\d{1,2}|100)$'
@@ -115,14 +120,18 @@ def main():
 
         modifier_modifier = m.group(1)
         modifier_value = int(m.group(2))
-        bm = BrightnessMod(force=args.force)
-        
-        if modifier_modifier == '=':
-            bm.brightness_perc = modifier_value
-        elif modifier_modifier == '+':
-            bm.brightness_perc += modifier_value
-        else:  # modifier_modifier == '-'
-            bm.brightness_perc -= modifier_value
+
+        try:
+            bm = BrightnessMod(force=args.force)
+        except FileNotFoundError:
+            parser.error('error accessing backlight interface')
+        else:
+            if modifier_modifier == '=':
+                bm.brightness_perc = modifier_value
+            elif modifier_modifier == '+':
+                bm.brightness_perc += modifier_value
+            else:  # modifier_modifier == '-'
+                bm.brightness_perc -= modifier_value
 
 
 if __name__ == '__main__':
