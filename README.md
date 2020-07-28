@@ -15,23 +15,27 @@ Note that the script has not been tested on a multi-monitor setup.
 
 View the current brightness percentage:
 
-`backlight`
+`$ brightnessmod`
 
 Set the brightess to 85%:
 
-`backlight =85`
+`$ brightnessmod =85`
 
 Increase the brightness by 15%:
 
-`backlight +15`
+`$ brightnessmod +15`
 
 Decrease the brightness by 5%:
 
-`backlight -5`
+`$ brightnessmod -5`
 
 Disable the minimum-brightness restriction to set the brightness to an
 extremely low value **(this may cause the display to go black)**:
 
-`backlight =1 -f`
+`$ brightnessmod =1 -f`
+
+Specify which backlight interface to use:
+
+`$ brightnessmod --interface intel_backlight`
 
 [1]: https://wiki.archlinux.org/index.php/Backlight#ACPI
