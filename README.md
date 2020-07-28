@@ -2,7 +2,7 @@
 
 **brightnessmod** is a small script I wrote to view and control my display
 brightness (or backlight power level, to be more technical). It interfaces
-with the ACPI kernel module for video using the sysfs files (in the `/sys`
+with the ACPI kernel module for video using the sysfs files in the `/sys`
 directory.
 
 For the user to be able to control the display brightness, they must have
