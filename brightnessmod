@@ -91,6 +91,10 @@ def argparser() -> argparse.ArgumentParser:
         nargs='?',
     )
     parser.add_argument(
+        '--interface',
+        help='specify backlight interface',
+    )
+    parser.add_argument(
         '-f', '--force',
         help='ignore safety constraints',
         action='store_true',
