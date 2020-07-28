@@ -21,15 +21,29 @@ class BrightnessMod:
     _BACKLIGHT_CLASS = pathlib.Path('/sys/class/backlight')
     MIN_ALLOWED_BRIGHTNESS_RAW = 10  # safety net
 
-    def __init__(self, force=False):
-        interfaces = list(self._BACKLIGHT_CLASS.iterdir())
-        if interfaces and interfaces[0].is_dir():
-            self._interface = interfaces[0]
+    def __init__(self, interface: str = None, *, force=False):
+        if interface:
+            if (self._BACKLIGHT_CLASS / interface).is_dir():
+                self._interface = self._BACKLIGHT_CLASS / interface
+        else:
+            interfaces = list(self._BACKLIGHT_CLASS.iterdir())
+            if interfaces and interfaces[0].is_dir():
+                self._interface = interfaces[0]
+
+        if not hasattr(self, '_interface'):
+            raise FileNotFoundError
         
         # These are ASCII-encoded sysfs files.
         self._max_brightness_f = self._interface / 'max_brightness'
         self._actual_brightness_f = self._interface / 'actual_brightness'
         self._brightness_f = self._interface / 'brightness'
+
+        if not (
+            self._max_brightness_f.is_file()
+            and self._actual_brightness_f.is_file()
+            and self._brightness_f.is_file()
+        ):
+            raise FileNotFoundError
         
         with self._max_brightness_f.open(encoding='ascii') as f:
             self.max_brightness_raw = int(f.read().strip())
