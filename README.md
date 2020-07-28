@@ -13,6 +13,10 @@ Note that the script has not been tested on a multi-monitor setup.
 
 ## Usage
 
+**Note:** To invoke the script by name solely, give it executability using
+`chmod u+x brightnessmod` and put it in `$HOME/bin` or `/usr/local/bin`.
+Also make sure you have Python 3 installed.
+
 View the current brightness percentage:
 
 `$ brightnessmod`
