@@ -95,12 +95,12 @@ def main():
         # Brightness value modifier regex.
         modifier_re = r'^([=+-])(\d{1,2}|100)$'
         m = re.match(modifier_re, args.modifier)
-        if m is not None:
-            modifier_modifier = m.group(1)
-            modifier_value = int(m.group(2))
-        else:
+
+        if m is None:
             parser.error('invalid brightness value modifier')
-        
+
+        modifier_modifier = m.group(1)
+        modifier_value = int(m.group(2))
         bm = BrightnessMod(force=args.force)
         
         if modifier_modifier == '=':
