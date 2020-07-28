@@ -109,7 +109,7 @@ def main():
 
     if args.modifier is None:
         try:
-            bm = BrightnessMod()
+            bm = BrightnessMod(args.interface)
         except FileNotFoundError:
             parser.error('error accessing backlight interface')
         else:
@@ -126,7 +126,7 @@ def main():
         modifier_value = int(m.group(2))
 
         try:
-            bm = BrightnessMod(force=args.force)
+            bm = BrightnessMod(args.interface, force=args.force)
         except FileNotFoundError:
             parser.error('error accessing backlight interface')
         else:
